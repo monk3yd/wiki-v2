@@ -1,6 +1,7 @@
 from markdown2 import Markdown
 
 from django import forms
+from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import render, HttpResponseRedirect, redirect
 
@@ -11,7 +12,7 @@ def index(request):
     if request.method == "POST":
         entries = util.list_entries()
         lower_entries = [entry.lower() for entry in entries]
-        
+
         # Get inputted search value from request
         query = request.POST.get('q').lower()
 
@@ -30,8 +31,8 @@ def index(request):
                 # print(query)
                 sub_entries.append(entries[idx])
         # print(sub_entries)
-        # redirect to search page (list of all entries with substring)
-        return render(request, 'encyclopedia/search.html', {
+        # go to search page (list of all entries with substring)
+        return render(request, "encyclopedia/search.html", {
             "entries": sub_entries
         })
 
@@ -39,24 +40,49 @@ def index(request):
         "entries": util.list_entries()
     })
 
+
 def article(request, title):
     markdowner = Markdown()
     # Get entry
     markdown_entry = util.get_entry(title)
-    
+
     # If entry doesn't exist
     if markdown_entry == None:
         raise Http404("Error 404. This entry doesn't exist yet.")
-    # Else 
-    
+    # Else
+
     # Convert entry to html
-    entry = markdowner.convert(markdown_entry)  # Convert Markdown into HTML
-    
+    html = markdowner.convert(markdown_entry)  # Convert Markdown into HTML
+
     # render the content of the entry
     return render(request, "encyclopedia/article.html", {
-        "entry": entry
+        "title": title,
+        "entry": html
     })
 
 
-def search(request, entries):
-    return render(request, "encyclopedia/search.html", entries=entries)
+def create(request):
+    if request.method == "POST":
+        entries = util.list_entries()
+        lower_entries = [entry.lower() for entry in entries]
+
+        title = request.POST.get('new-entry-title')
+        # If article already exists
+        if title.lower() in lower_entries:
+            messages.info(request, 'Error. Article already exists.')
+            return render(request, "encyclopedia/create.html")
+
+        markdown_text = request.POST.get('textarea')
+
+        print(title)
+        print(markdown_text)
+
+        # Save new article entry
+        util.save_entry(title, markdown_text)
+        return redirect('article', title=title)
+
+    return render(request, "encyclopedia/create.html")
+
+
+def edit(request):
+    return render(request, "encyclopedia/edit.html")
