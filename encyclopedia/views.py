@@ -5,6 +5,8 @@ from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import render, HttpResponseRedirect, redirect
 
+import random
+
 from . import util
 
 
@@ -84,5 +86,21 @@ def create(request):
     return render(request, "encyclopedia/create.html")
 
 
-def edit(request):
-    return render(request, "encyclopedia/edit.html")
+def edit(request, title):
+    if request.method == "POST":
+        title = request.POST.get('new-entry-title')
+        textarea = request.POST.get('textarea')
+        util.save_entry(title, textarea)
+        return redirect('article', title=title)
+
+    entry = util.get_entry(title)
+    return render(request, "encyclopedia/edit.html", {
+        "title": title,
+        "entry": entry
+    })
+
+
+def rand(request):
+    entries = util.list_entries()
+    random_entry = random.choice(entries)
+    return redirect('article', title=random_entry)
