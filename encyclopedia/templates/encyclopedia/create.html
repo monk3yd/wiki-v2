@@ -1,0 +1,27 @@
+{% extends "encyclopedia/layout.html" %}
+
+{% block title %}
+    Create New Entry Page
+{% endblock %}
+
+{% block body %}
+    <h1>Create New Entry Page</h1>
+    <form action="{% url 'create' %}" method="POST">
+        {% csrf_token %}
+        <div class="title-container form-group">
+            <input class="new-entry-title" type="text" name="new-entry-title" placeholder="New entry title">
+        </div>
+        <div class="textarea-container form-group">
+            <textarea class="textarea form-control" name="textarea" rows="7" placeholder="Enter your entry data here (may use markdown!)"></textarea>
+        </div>
+        <div>
+            <button class="btn btn-outline-primary btn btn-md" type="submit" name="save-entry" >Save</button>
+        </div>
+        {% if messages %}
+            {% for message in messages %}
+            <p{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+
+    </form>
+{% endblock %}
